@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<title>Igrica</title>
+		<style>
+			#glavni{
+				height:54vw;
+				width:54vw;
+				border: 1px solid black;
+				padding:0px;
+				margin:0px
+			}
+			.mali{
+				border: 0.5px solid rgb(70, 60, 52);
+				display: inline-block;
+				padding: 0px; 
+				margin:0px
+			}
+			.broj{
+				background-color: rgb(165, 227, 235); 
+				padding:0px;
+				margin:0px
+			}
+			#ponovo{
+				padding:10px 0px;
+				background-color: brown;
+				color: white;
+				font-weight: 900;
+			}
+			.prazno{
+				background-color: white;
+			}
+		</style>
+	</head>
+	<body onload="pocni()"> 
+		<div id="glavni">
+		</div>
+		<button id="ponovo" onclick="location.reload()">REFRESH</button>
+		<p>Proteklo vreme od početka: <span id="vreme"> 00:00</span> </p>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+		<script>
+		var nizBrojeva = [];
+		function pocni(){
+			const d = new Date();
+			let pocetak = d.getTime();
+			var minuti=0;
+			var sekunde=0;
+			setInterval(function(){
+				const d1 = new Date();
+				let kraj = d1.getTime();
+				sekunde=parseInt((kraj-pocetak)/1000);
+				
+				if(sekunde%60==0) {
+					minuti=parseInt(minuti)+1;
+				}
+				if(sekunde%60<10) sekunde="0"+parseInt(sekunde%60);
+				if(minuti<10) minuti="0"+parseInt(minuti);
+				$("#vreme").text(minuti+":"+sekunde);
+			},1000);
+
+			// postavljanje svih na vrednost koja se neće nalaziti u nizu
+			for (var i = 0; i < 16; i++)
+			{
+				nizBrojeva[i] = -2;
+			}
+			// mesanje, random biranje brojeva
+			var broj=0;
+			var rnd = 0;
+			for (var i = 0; i < 16; i++)
+			{
+				var provera=true;
+				rnd = Math.floor(Math.random()*16);
+				for(var k=0;k<4*4;k++)
+					if(nizBrojeva[k]==rnd)
+						provera=false;
+
+				if (provera) 
+					nizBrojeva[broj++]=rnd;
+				else
+					i--;
+			}
+		//da se lakše proveri pobeda
+		// for (var i = 0; i < 16; i++)
+		// {
+		// 		nizBrojeva[i]=i+1;
+		// 	if(i==15) nizBrojeva[i]=0;
+		// }
+
+			napravi();
+		}
+
+		function napravi()
+		{
+			var tekst = "";
+			var broj=0;
+			//pravljenje html za ubacivanje
+			for (var k = 0; k < 16; k++)
+			{  
+					if(nizBrojeva[broj]!=0)
+						tekst += "<button class='broj mali'  id='"+broj+"'>"+nizBrojeva[broj++]+"</button>";
+					else {
+						tekst += "<button class='prazno mali' id='"+broj+"'> <br> </button>"; 
+						broj++;
+					}         
+			} 
+			$("#glavni").html(tekst);
+			dimenzije();
+		}
+
+		$(document).ready(function() {
+			$('button.mali').on('click', function(event) {
+				var mojId = $(this).attr('id');
+				// cetiri razlicita id-a, gore, dole, levo, desno
+				//jedan levo
+				var prviId=mojId-1;
+				//jedan desno
+				var drugiId=parseInt(mojId)+1;
+				//red iznad
+				var treciId=mojId-4;
+				//red ispod
+				var cetvrtiId= parseInt(mojId)+4;
+
+				if(($("#"+prviId).hasClass("prazno") && prviId%4!=3 )  || ($("#"+drugiId).hasClass("prazno") && drugiId%4!=0) || $("#"+treciId).hasClass("prazno") || $("#"+cetvrtiId).hasClass("prazno"))
+				{ 
+					//defisinanje koji je kliknut
+					var $atribut;
+					if($("#"+prviId).hasClass("prazno"))
+						$atribut=$("#"+prviId);
+					else if($("#"+drugiId).hasClass("prazno"))
+						$atribut=$("#"+drugiId);
+					else if($("#"+treciId).hasClass("prazno"))
+						$atribut=$("#"+treciId);
+					else if($("#"+cetvrtiId).hasClass("prazno"))
+						$atribut=$("#"+cetvrtiId);
+
+					//zamene klasa i teksta
+					$atribut.removeClass('prazno');
+					$atribut.addClass('broj');
+					$atribut.text($(this).text());
+					$(this).html('<br>');
+					$(this).removeClass('broj');
+					$(this).addClass('prazno');
+				}
+				daLiJePobeda();
+			});
+		});
+
+		function daLiJePobeda()
+		{
+			var count = 1;
+			var pobeda=true;
+			for (var i = 0; i < 15; i++)
+				//npr button sa id-em 1 mora da ima vrednost 2
+				if($("#"+i).text()!=count++)
+						pobeda=false;
+			
+			//set timeout da bi pustio zamenu klase i teksta pre nego što izbaci alert i pokrene novu igru
+			if(pobeda)
+				setTimeout(function(){
+					alert("Cestitam, pobedili ste!");
+					location.reload();
+				},300);
+		}
+
+		function dimenzije()
+		{
+			// dinamicko izracunavanje visine i sirine
+			$(".mali").height($("#glavni").width()/4-2);//-2 zbog bordera
+			$(".mali").width($("#glavni").height()/4-2);
+			$("#ponovo").width($("#glavni").width());
+		}
+
+		//da bude responsive
+		$(window).resize(dimenzije);
+		</script>
+	</body>
+</html>
